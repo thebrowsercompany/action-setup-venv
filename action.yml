@@ -20,7 +20,7 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984  # v4.3.0
+    - uses: thebrowsercompany/check-python-exists@a41d6e4ca8d5b7745e5ef3ec424b99a41b751e53 # PR update when merged
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
@@ -31,7 +31,7 @@ runs:
         path: ${{ inputs.venv-dir }}
         key: setup-venv-${{ runner.os }}-py-${{ steps.setup-python.outputs.python-version }}-${{ steps.setup-python.outputs.python-path }}-${{ hashFiles(inputs.cache-dependency-path) }}-${{ inputs.install-cmd }}
 
-    - run: python3 -m venv ${{ inputs.venv-dir }}
+    - run: python${{ steps.setup-python.outputs.python-version }} -m venv ${{ inputs.venv-dir }}
       if: steps.cache-venv.outputs.cache-hit != 'true'
       shell: bash
 
