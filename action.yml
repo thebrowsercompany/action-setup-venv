@@ -11,6 +11,9 @@ inputs:
     default: '.venv'
   install-cmd:
     description: 'Command to install python dependencies.'
+  is-self-hosted:
+    description: "Whether or not the runner is self-hosted. Unfortunately this is not deducible from the existing context values."
+    default: 'false'
 
 outputs:
   cache-hit:
@@ -20,10 +23,11 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - uses: thebrowsercompany/check-python-exists@a41d6e4ca8d5b7745e5ef3ec424b99a41b751e53 # PR update when merged
+    - uses: thebrowsercompany/check-python-exists@e42d9f461a54d01901f01411bb9fd564c8c9dc5c # PR update when merged
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
+        is-self-hosted: ${{ inputs.is-self-hosted }}
 
     - uses: actions/cache@v3
       id: cache-venv
