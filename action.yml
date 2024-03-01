@@ -24,13 +24,16 @@ runs:
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
-        is-self-hosted: ${{ !startsWith('GitHub Actions', runner.name) }}
+        is-self-hosted: ${{ !startsWith(runner.name, 'GitHub Actions') }}
 
     - name: SHA the intall command
       id: install-cmd-sha
       shell: bash
       run: |
-        echo "install-cmd-sha=$(echo "${{ inputs.install-cmd }}" | shasum -a 256 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+        (
+          echo -n "install-cmd-sha="
+          echo "${{ inputs.install-cmd }}" | shasum -a 256 | cut -d' ' -f1
+        ) >> $GITHUB_OUTPUT
 
     - uses: actions/cache@v3
       id: cache-venv
