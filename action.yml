@@ -20,18 +20,28 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984  # v4.3.0
+    - uses: thebrowsercompany/check-python-exists@f367193e32108984dfd2f85ce079036cc4880c60
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
+        is-self-hosted: ${{ !startsWith(runner.name, 'GitHub Actions') }}
+
+    - name: SHA the intall command
+      id: install-cmd-sha
+      shell: bash
+      run: |
+        (
+          echo -n "install-cmd-sha="
+          echo "${{ inputs.install-cmd }}" | shasum -a 256 | cut -d' ' -f1
+        ) >> $GITHUB_OUTPUT
 
     - uses: actions/cache@v3
       id: cache-venv
       with:
         path: ${{ inputs.venv-dir }}
-        key: setup-venv-${{ runner.os }}-py-${{ steps.setup-python.outputs.python-version }}-${{ steps.setup-python.outputs.python-path }}-${{ hashFiles(inputs.cache-dependency-path) }}-${{ inputs.install-cmd }}
+        key: setup-venv-${{ runner.os }}-py-${{ steps.setup-python.outputs.python-version }}-${{ steps.setup-python.outputs.python-path }}-${{ hashFiles(inputs.cache-dependency-path) }}-${{ steps.install-cmd-sha.outputs.install-cmd-sha }}
 
-    - run: python3 -m venv ${{ inputs.venv-dir }}
+    - run: python${{ steps.setup-python.outputs.python-version }} -m venv ${{ inputs.venv-dir }}
       if: steps.cache-venv.outputs.cache-hit != 'true'
       shell: bash
 
