@@ -35,7 +35,7 @@ runs:
           echo "${{ inputs.install-cmd }}" | shasum -a 256 | cut -d' ' -f1
         ) >> $GITHUB_OUTPUT
 
-    - uses: actions/cache@v3
+    - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
       id: cache-venv
       with:
         path: ${{ inputs.venv-dir }}
