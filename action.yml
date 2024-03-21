@@ -24,7 +24,7 @@ runs:
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
-        is-self-hosted: ${{ !startsWith(runner.name, 'GitHub Actions') }}
+        is-self-hosted: ${{ !startsWith(runner.name, 'GitHub Actions') && !startsWith(runner.name, 'windows-latest-') }}
 
     - name: SHA the intall command
       id: install-cmd-sha
