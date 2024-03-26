@@ -20,20 +20,20 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - uses: thebrowsercompany/check-python-exists@f367193e32108984dfd2f85ce079036cc4880c60
+    - uses: thebrowsercompany/check-python-exists@15e9ae374b1b084bf2be7285fdccad5b982227b7
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
         is-self-hosted: ${{ !startsWith(runner.name, 'GitHub Actions') }}
 
-    - name: SHA the intall command
+    - name: SHA the install command
       id: install-cmd-sha
       shell: bash
+      # macOS doesn't include shasum256 and Windows doesn't include shasum, so
+      # use python.
       run: |
-        (
-          echo -n "install-cmd-sha="
-          echo "${{ inputs.install-cmd }}" | shasum -a 256 | cut -d' ' -f1
-        ) >> $GITHUB_OUTPUT
+        CMD_HASH="$(echo '${{ inputs.install-cmd }}' | python3 -c 'import hashlib,sys;print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())')"
+        echo -n "install-cmd-sha=$CMD_HASH" >> $GITHUB_OUTPUT
 
     - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
       id: cache-venv
@@ -45,11 +45,21 @@ runs:
       if: steps.cache-venv.outputs.cache-hit != 'true'
       shell: bash
 
-    - run: |
+    - name: venv save env (posix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
         source ${{ inputs.venv-dir }}/bin/activate
         echo "VIRTUAL_ENV=${VIRTUAL_ENV}" >> $GITHUB_ENV
         echo "${VIRTUAL_ENV}/bin" >> $GITHUB_PATH
-      shell: bash
+
+    - name: venv save env (windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        call ${{ inputs.venv-dir }}\\scripts\\activate
+        echo "VIRTUAL_ENV=%VIRTUAL_ENV%" >> $GITHUB_ENV
+        echo "%VIRTUAL_ENV%\scripts" >> $GITHUB_PATH
 
     - run: ${{ inputs.install-cmd }}
       if: inputs.install-cmd != '' && steps.cache-venv.outputs.cache-hit != 'true'
