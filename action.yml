@@ -20,7 +20,7 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - uses: thebrowsercompany/check-python-exists@15e9ae374b1b084bf2be7285fdccad5b982227b7
+    - uses: thebrowsercompany/check-python-exists@ec632c598d7a818fdc195abb2d01b25b058126dc
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
