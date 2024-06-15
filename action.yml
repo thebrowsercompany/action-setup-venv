@@ -55,11 +55,15 @@ runs:
 
     - name: venv save env (windows)
       if: runner.os == 'Windows'
-      shell: cmd
+      shell: pwsh
       run: |
-        call ${{ inputs.venv-dir }}\\scripts\\activate
-        echo "VIRTUAL_ENV=%VIRTUAL_ENV%" >> $GITHUB_ENV
-        echo "%VIRTUAL_ENV%\scripts" >> $GITHUB_PATH
+        ${{ inputs.venv-dir }}\Scripts\Activate.ps1
+        echo "$Env:VIRTUAL_ENV"
+        echo "VIRTUAL_ENV=$Env:VIRTUAL_ENV" >> $Env:GITHUB_ENV
+        echo "$Env:VIRTUAL_ENV\Scripts" >> $Env:GITHUB_PATH
+
+    - run: echo $PATH
+      shell: bash
 
     - run: ${{ inputs.install-cmd }}
       if: inputs.install-cmd != '' && steps.cache-venv.outputs.cache-hit != 'true'
