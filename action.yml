@@ -60,7 +60,8 @@ runs:
     - name: Create venv
       if: steps.cache-venv.outputs.cache-hit != 'true' && steps.check-venv.outputs.already_venv == 'false'
       shell: bash
-      run: "${{ steps.setup-python.outputs.python-path }}" -m venv ${{ inputs.venv-dir }}
+      run: |
+        '${{ steps.setup-python.outputs.python-path }}' -m venv ${{ inputs.venv-dir }}
 
     - name: venv save env (posix)
       if: runner.os != 'Windows' && steps.check-venv.outputs.already_venv == 'false'
