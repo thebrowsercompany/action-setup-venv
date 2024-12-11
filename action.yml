@@ -31,12 +31,12 @@ runs:
       shell: bash
       run: |
         # Will either print the directory to the venv, or `None` if it is not set.
-        VENV=$(${{ steps.setup-python.outputs.python-path }} -c "import os; print(os.environ.get('VIRTUAL_ENV'))")
+        VENV=$("${{ steps.setup-python.outputs.python-path }}" -c "import os; print(os.environ.get('VIRTUAL_ENV'))")
         if [ "$VENV" = "None" ]; then
-          echo "Python venv already detected. Skipping the rest of venv setup."
+          echo "No venv detected. Setting up venv."
           echo "already_venv=false" >> "$GITHUB_OUTPUT"
         else
-          echo "No venv detected. Setting up venv."
+          echo "Python venv already detected. Skipping the rest of venv setup."
           echo "already_venv=true" >> "$GITHUB_OUTPUT"
         fi
 
