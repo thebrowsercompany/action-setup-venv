@@ -57,9 +57,10 @@ runs:
         path: ${{ inputs.venv-dir }}
         key: setup-venv-${{ runner.os }}-py-${{ steps.setup-python.outputs.python-version }}-${{ steps.setup-python.outputs.python-path }}-${{ hashFiles(inputs.cache-dependency-path) }}-${{ steps.install-cmd-sha.outputs.install-cmd-sha }}
 
-    - run: "${{ steps.setup-python.outputs.python-path }}" -m venv ${{ inputs.venv-dir }}
+    - name: Create venv
       if: steps.cache-venv.outputs.cache-hit != 'true' && steps.check-venv.outputs.already_venv == 'false'
       shell: bash
+      run: "${{ steps.setup-python.outputs.python-path }}" -m venv ${{ inputs.venv-dir }}
 
     - name: venv save env (posix)
       if: runner.os != 'Windows' && steps.check-venv.outputs.already_venv == 'false'
