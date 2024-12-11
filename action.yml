@@ -20,7 +20,7 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - uses: thebrowsercompany/check-python-exists@enable-input-version
+    - uses: thebrowsercompany/check-python-exists@6334b969448dd1526acacf8ba093bfbd3c5dce64
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
