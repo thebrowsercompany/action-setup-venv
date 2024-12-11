@@ -20,13 +20,28 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - uses: thebrowsercompany/check-python-exists@7a9d28cb86e2aae6d6ef75af09b4bb14fcd03ff1
+    - uses: thebrowsercompany/check-python-exists@6334b969448dd1526acacf8ba093bfbd3c5dce64
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
         is-self-hosted: ${{ !startsWith(runner.name, 'GitHub Actions') }}
+    
+    - name: Check venv
+      id: check-venv
+      shell: bash
+      run: |
+        # Will either print the directory to the venv, or `None` if it is not set.
+        VENV=$("${{ steps.setup-python.outputs.python-path }}" -c "import os; print(os.environ.get('VIRTUAL_ENV'))")
+        if [ "$VENV" = "None" ]; then
+          echo "No venv detected. Setting up venv."
+          echo "already_venv=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "Python venv already detected. Skipping the rest of venv setup."
+          echo "already_venv=true" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: SHA the install command
+      if: steps.check-venv.outputs.already_venv == 'false'
       id: install-cmd-sha
       shell: bash
       # macOS doesn't include shasum256 and Windows doesn't include shasum, so
@@ -36,17 +51,20 @@ runs:
         echo -n "install-cmd-sha=$CMD_HASH" >> $GITHUB_OUTPUT
 
     - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      if: steps.check-venv.outputs.already_venv == 'false'
       id: cache-venv
       with:
         path: ${{ inputs.venv-dir }}
         key: setup-venv-${{ runner.os }}-py-${{ steps.setup-python.outputs.python-version }}-${{ steps.setup-python.outputs.python-path }}-${{ hashFiles(inputs.cache-dependency-path) }}-${{ steps.install-cmd-sha.outputs.install-cmd-sha }}
 
-    - run: python${{ steps.setup-python.outputs.python-version }} -m venv ${{ inputs.venv-dir }}
-      if: steps.cache-venv.outputs.cache-hit != 'true'
+    - name: Create venv
+      if: steps.cache-venv.outputs.cache-hit != 'true' && steps.check-venv.outputs.already_venv == 'false'
       shell: bash
+      run: |
+        '${{ steps.setup-python.outputs.python-path }}' -m venv ${{ inputs.venv-dir }}
 
     - name: venv save env (posix)
-      if: runner.os != 'Windows'
+      if: runner.os != 'Windows' && steps.check-venv.outputs.already_venv == 'false'
       shell: bash
       run: |
         source ${{ inputs.venv-dir }}/bin/activate
@@ -54,7 +72,7 @@ runs:
         echo "${VIRTUAL_ENV}/bin" >> $GITHUB_PATH
 
     - name: venv save env (windows)
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && steps.check-venv.outputs.already_venv == 'false'
       shell: pwsh
       run: |
         ${{ inputs.venv-dir }}\Scripts\Activate.ps1
@@ -63,8 +81,9 @@ runs:
         echo "$Env:VIRTUAL_ENV\Scripts" >> $Env:GITHUB_PATH
 
     - run: echo $PATH
+      if: steps.check-venv.outputs.already_venv == 'false'
       shell: bash
 
     - run: ${{ inputs.install-cmd }}
-      if: inputs.install-cmd != '' && steps.cache-venv.outputs.cache-hit != 'true'
+      if: inputs.install-cmd != '' && steps.cache-venv.outputs.cache-hit != 'true' && steps.check-venv.outputs.already_venv == 'false'
       shell: bash
