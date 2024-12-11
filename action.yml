@@ -20,7 +20,7 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - uses: thebrowsercompany/check-python-exists@jeremy/remove-windows-arm64-hack
+    - uses: thebrowsercompany/check-python-exists@main
       id: setup-python
       with:
         python-version: ${{ inputs.python-version }}
