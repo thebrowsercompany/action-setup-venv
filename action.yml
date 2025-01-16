@@ -50,7 +50,7 @@ runs:
         CMD_HASH="$(echo '${{ inputs.install-cmd }}' | python3 -c 'import hashlib,sys;print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())')"
         echo -n "install-cmd-sha=$CMD_HASH" >> $GITHUB_OUTPUT
 
-    - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+    - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
       if: steps.check-venv.outputs.already_venv == 'false'
       id: cache-venv
       with:
@@ -58,6 +58,7 @@ runs:
         key: setup-venv-${{ runner.os }}-py-${{ steps.setup-python.outputs.python-version }}-${{ steps.setup-python.outputs.python-path }}-${{ hashFiles(inputs.cache-dependency-path) }}-${{ steps.install-cmd-sha.outputs.install-cmd-sha }}
 
     - name: Create venv
+      # cache-hit is a weird tribool string: https://github.com/actions/cache/issues/1466
       if: steps.cache-venv.outputs.cache-hit != 'true' && steps.check-venv.outputs.already_venv == 'false'
       shell: bash
       run: |
